@@ -27,8 +27,10 @@ def main():
     if am_songs_count:
         print("Found %d songs in passed file" % am_songs_count)
         api = Mobileclient()
-        api.login(args.email, args.password, Mobileclient.FROM_MAC_ADDRESS)
-
+        if api.login(args.email, args.password, Mobileclient.FROM_MAC_ADDRESS):
+            print("Successfully connected to your account.")
+        else:
+            print("Could not connect to your account. Please check credentials.")
 
 if __name__ == "__main__":
     main()
