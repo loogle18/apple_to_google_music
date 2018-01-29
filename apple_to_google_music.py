@@ -2,6 +2,7 @@ from argparse import ArgumentParser
 from gmusicapi import Mobileclient
 from multiprocessing import Pool, cpu_count
 from time import sleep
+from re import sub as re_sub
 
 
 class bcolors:
@@ -9,6 +10,9 @@ class bcolors:
     OKGREEN = "\033[92m"
     FAIL = "\033[91m"
     ENDC = "\033[0m"
+
+
+REDUNDANT_PARTS = "\(Original Motion Picture Soundtrack\)| - Single| - EP"
 
 
 def _get_args():
@@ -31,18 +35,21 @@ def _get_songs_count_from_file(path):
         print(error)
 
 
-def _search_tracks(line, tried=False):
+def _search_tracks(line, with_artist=True):
     columns = line.split("\t")
-    query = "%s %s %s" % (columns[0], columns[1], columns[3])
+    artist = columns[1] if with_artist else ""
+    album = re_sub(REDUNDANT_PARTS, "", columns[3])
+    query = "%s %s %s" % (columns[0], artist, album)
 
     try:
         track_id = api.search(query)["song_hits"][0]["track"]["storeId"]
         print(bcolors.OKGREEN + query + bcolors.ENDC)
         return track_id
     except Exception:
-        if not tried:
+        if with_artist:
             sleep(3)
-            _search_tracks(line, True)
+            # Sometimes songs can be found only without artist name
+            _search_tracks(line, False)
         else:
             print(bcolors.FAIL + query + bcolors.ENDC)
             ignored_tracks.append(query)
