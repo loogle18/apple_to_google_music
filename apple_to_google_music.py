@@ -1,5 +1,6 @@
 from argparse import ArgumentParser
 from gmusicapi import Mobileclient
+from multiprocessing import Pool, cpu_count
 
 
 def _get_args():
@@ -21,6 +22,12 @@ def _get_songs_count_from_file(path):
     except Exception as error:
         print(error)
 
+def _search_tracks(line):
+    columns = line.split("\t")
+    query = "%s %s %s" % (columns[0], columns[1], columns[3])
+
+    print(query)
+
 def main():
     args = _get_args()
     am_songs_count = _get_songs_count_from_file(args.file)
@@ -28,7 +35,16 @@ def main():
         print("Found %d songs in passed file" % am_songs_count)
         api = Mobileclient()
         if api.login(args.email, args.password, Mobileclient.FROM_MAC_ADDRESS):
-            print("Successfully connected to your account.")
+            print("Successfully connected to your account. Starting process...")
+
+            gm_track_ids = []
+            with open(args.file) as file:
+                pool = Pool(processes=cpu_count() + 1)
+                lines = file.readlines()[1:]
+                gm_track_ids = pool.map(_search_tracks, lines)
+                pool.close()
+                pool.join()
+
         else:
             print("Could not connect to your account. Please check credentials.")
 
