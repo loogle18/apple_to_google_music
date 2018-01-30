@@ -87,8 +87,10 @@ def main():
     args = _get_args()
     am_songs_count = _get_songs_count_from_file(args.file)
     if am_songs_count:
+        print("\n\n--------------------------------------------------------\n")
         print(bcolors.OKBLUE +
               "Found %d songs in passed file" % am_songs_count + bcolors.ENDC)
+        print("\n--------------------------------------------------------\n\n")
         _init_global()
         if api.login(args.email, args.password, Mobileclient.FROM_MAC_ADDRESS):
             _print_message()
